@@ -90,8 +90,7 @@ const sensentiveEndPointsLimiter =  rateLimit({
 
 
  //started the server
-cosnt 
- app.listen(PORT,()=>{
+app.listen(PORT,()=>{
     logger.info(`Identity service is runniing at ${PORT}`)
 
 
@@ -104,5 +103,5 @@ cosnt
  logger.error("Unhandled Rejection at ",promise ,"reason :",reason)
 
  })
- 
+
 
