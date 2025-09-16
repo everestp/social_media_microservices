@@ -36,12 +36,18 @@ const registerUser = async(req ,res)=>{
         const {accessToken ,refreshToken}=   await generateToken(user)
    res.status(201).json({
     sucess:true,
-    message:'User is register sucessfully'
+    message:'User is register sucessfully',
+    accessToken,
+    refreshToken
    })
 
-   
+
     } catch (error) {
-        
+        logger.error("Registration error occurred")
+        res.status(500).json({
+            success:false,
+            message:'Internal server error'
+        })
     }
 }
 
@@ -52,5 +58,10 @@ const registerUser = async(req ,res)=>{
 //refresh token
 
 //logout
+
+
+module.exports ={registerUser}
+
+
 
 
