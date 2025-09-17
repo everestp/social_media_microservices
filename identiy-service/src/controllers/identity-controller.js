@@ -1,3 +1,4 @@
+const RefreshToken = require('../models/RefreshToken')
 const User = require('../models/User')
 const generateToken = require('../utils/generateToken')
 const logger = require('../utils/logger')
@@ -120,4 +121,81 @@ const registerUser = async (req, res) => {
     }
  }
 
-module.exports = { registerUser ,loginUser}
+
+ // refresh token
+ const refreshTokenUser= async(req ,res)=>{
+      logger.info(" Refresh token  endpoint hits")
+      try {
+
+        // get our refresh token 
+        const {refreshToken}=req.body()
+         if(!refreshToken){
+            logger.warn('Refresh token missing')
+             return res.status(400).json({
+                success: false,
+                message: "Refresh token missing"
+            })
+         }
+        
+
+         // get our stored token
+        const storeToken = await RefreshToken.findOne({token:refreshToken})
+        if(!storeToken || storeToken.expireAt < new Date()){
+            logger.warn("Invalid or expired refresh Token")
+            return res.status(400).json({
+                success:false,
+                message:'Invalid or expired refresh token'
+
+
+            })
+
+        }
+        //find the user
+        const user = await User.findById(storeToken.user)
+        if(!user){
+              logger.warn(" User not found")
+            return res.status(400).json({
+                success:false,
+                message:' user not found'
+
+
+            })
+        }
+
+        // Generate a new troken
+
+        const {accessToken:newAccessToken ,refreshToken:newRefreshToken}= await generateToken(user)
+
+        
+
+        //delete the existing refresh token -----> Very very important
+        await RefreshToken.deleteOne({_id:storeToken._id})
+
+        res.json({
+            accessToken:newAccessToken,
+            refreshToken:newRefreshToken
+        })
+
+
+
+
+
+
+
+
+
+
+
+
+      } catch (error) {
+
+         logger.error("Error generating refresh token", error)
+
+        res.status(500).json({
+            success: false,
+            message: ' Refresh token create Error'
+        })
+      }
+ }
+
+module.exports = { registerUser ,loginUser ,refreshTokenUser}
