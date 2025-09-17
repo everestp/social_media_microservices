@@ -27,7 +27,7 @@ app.use(cors())
 app.use(express.json())
 
 //  Rate Limiting
- const ratelimit = rateLimit({
+ const ratelimitOptions = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 50,
   standardHeaders: true,
@@ -44,7 +44,7 @@ app.use(express.json())
   })
 })
 
-app.use(ratelimit)
+app.use(ratelimitOptions)
 app.use((req, res, next) => {
   logger.info(`Received ${req.method} request to ${req.url}`)
   logger.info(`Request Body: ${JSON.stringify(req.body || {})}`)
@@ -71,7 +71,7 @@ final api localhost:3000/v1/auth/register -> should redirevt adn hit to -> local
 
 const proxyOptions = {
     proxyReqPathResolver :(req)=>{
-        return req.originalUrl.replace(/^\v1/,"/api")
+        return req.originalUrl.replace(/^\/v1/,"/api")
     },
     proxyErrorHandler :(err ,res ,next)=>{
         logger.error(`Proxy error :${err.message}`),
@@ -85,10 +85,10 @@ const proxyOptions = {
 
 //setting up proxy for out identiy service -> VVVVVI VVVI Important understand  it
 app.use('/v1/auth',proxy(process.env.IDENTITY_SERVICE_URL,{
-    ...proxy,
+    ...proxyOptions,
     proxyReqOptDecorator :(proxyReqOpts ,srcReq)=>{
         proxyReqOpts.headers["Content-Types"]="application/json"
-        return proxyOptions
+        return proxyReqOpts
     },
     userResDecorator:(proxyRes ,proxyResData ,useReq ,userRes)=>{
         logger.info(`Response recieved from Identity Servoce : ${proxyRes.statusCode}`)
