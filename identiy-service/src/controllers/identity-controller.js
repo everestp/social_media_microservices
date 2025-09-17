@@ -1,67 +1,57 @@
-
-
 const User = require('../models/User')
 const generateToken = require('../utils/generateToken')
-const logger= require('../utils/logger')
+const logger = require('../utils/logger')
 const { validateRegistration } = require('../utils/validation')
 
-//user registration
-
-const registerUser = async(req ,res)=>{
+// user registration
+const registerUser = async (req, res) => {
     logger.info("Registration endpoint hit...")
+
     try {
-        // validate the schema
-        const {error} = validateRegistration(req.body)
-        if(error){
-            logger.warn("Validation error",error.details[0].message)
+        const { error } = validateRegistration(req.body)
+        if (error) {
+            logger.warn("Validation error: " + error.details[0].message)
             return res.status(400).json({
-                sucess:false,
-                message : error.details[0].message
+                success: false,
+                message: error.details[0].message
             })
         }
 
-        const {email , password , username}= req.body
-        let user = await User.findOne({$or :[{email},{username}]})
-        if(user){
-             logger.warn("User already exists")
+        const { email, password, username } = req.body
+
+        let existingUser = await User.findOne({ $or: [{ email }, { username }] })
+        if (existingUser) {
+            const conflictField = existingUser.email === email ? "Email" : "Username"
+            logger.warn(`${conflictField} already exists`)
             return res.status(400).json({
-                sucess:false,
-                message :"User already exist"
+                success: false,
+                message: `${conflictField} is already in use`
             })
         }
 
-        const newlyCreateUser  = new User({username ,email,password})
-        await newlyCreateUser.save()
-        logger.warn("User saved Sucessfully",newlyCreateUser._id)
-        const {accessToken ,refreshToken}=   await generateToken(user)
-   res.status(201).json({
-    sucess:true,
-    message:'User is register sucessfully',
-    accessToken,
-    refreshToken
-   })
+        const newlyCreatedUser = new User({ username, email, password })
+        logger.info("Saving user...")
+        await newlyCreatedUser.save()
+        logger.info("User saved successfully: " + newlyCreatedUser._id)
 
+        logger.info("Generating token...")
+        const { accessToken, refreshToken } = await generateToken(newlyCreatedUser)
+        logger.info("Token generated.")
+
+        res.status(201).json({
+            success: true,
+            message: 'User is registered successfully',
+            accessToken,
+            refreshToken
+        })
 
     } catch (error) {
-        logger.error("Registration error occurred")
+        logger.error("Registration error occurred", error)
         res.status(500).json({
-            success:false,
-            message:'Internal server error'
+            success: false,
+            message: 'Internal server error'
         })
     }
 }
 
-
-//user login
-
-
-//refresh token
-
-//logout
-
-
-module.exports ={registerUser}
-
-
-
-
+module.exports = { registerUser }
