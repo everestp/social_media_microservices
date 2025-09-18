@@ -55,8 +55,8 @@ app.use((req, res, next) => {
 
 // Sensitive Endpoint Rate Limiting
 const sensitiveEndPointsLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 50,
+  windowMs: 5* 60 * 1000,
+  max: 500,
   standardHeaders: true,
   legacyHeaders: false,
   handler: (req, res) => {
@@ -72,7 +72,7 @@ const sensitiveEndPointsLimiter = rateLimit({
 })
 
 // Apply sensitive limiter to /register
-app.use('/api/auth/register', sensitiveEndPointsLimiter)
+// app.use('/api/auth/register', sensitiveEndPointsLimiter)
 
 // Routes
 app.use('/api/auth', routes)

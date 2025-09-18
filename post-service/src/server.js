@@ -35,10 +35,15 @@ app.use((req, res, next) => {
 // **** Homework- Implement Ip based rate Limiting for sensetive endpoints
 
 //routes -> pass redis client
-app.use("/api/post",(req,res,next)=>{
-    req.redisClient = redisClient
-    next()
-},postRoutes)
+app.use(
+  "/api/post",
+  (req, res, next) => {
+    req.redisClient = redisClient;
+    next();
+  },
+  postRoutes
+);
+
 
 
 
@@ -47,7 +52,7 @@ app.use(errorHandler)
 
 // Start server
 app.listen(PORT, () => {
-  logger.info(`Identity service is running at port ${PORT}`)
+  logger.info(`Post service is running at port ${PORT}`)
 })
 
 // Unhandled promise rejections
