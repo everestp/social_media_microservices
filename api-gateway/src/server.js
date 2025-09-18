@@ -17,22 +17,22 @@ const app = express();
 const redisClient = new Redis(process.env.REDIS_URL);
 const PORT = process.env.PORT || 3000;
 
-// ✅ ENV Validation (Add more if needed)
+// ENV Validation (Add more if needed)
 if (!process.env.JWT_SECRET || !process.env.IDENTITY_SERVICE_URL || !process.env.POST_SERVICE_URL || !process.env.REDIS_URL) {
     logger.error('Missing one or more required environment variables.');
     process.exit(1);
 }
 
-// ✅ Middleware
+// Middleware
 app.use(helmet());
 app.use(cors());
 app.use(compression());
 app.use(express.json());
 
-// ✅ Rate Limiting with Redis
+// Rate Limiting with Redis
 const ratelimitOptions = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 50,
+    max: 5000,
     standardHeaders: true,
     legacyHeaders: false,
     handler: (req, res) => {
@@ -48,7 +48,7 @@ const ratelimitOptions = rateLimit({
 });
 app.use(ratelimitOptions);
 
-// ✅ Request Logging
+//  Request Logging
 app.use((req, res, next) => {
     logger.info(`Incoming Request: [${req.method}] ${req.originalUrl}`);
     if (req.body && Object.keys(req.body).length > 0) {
@@ -57,7 +57,7 @@ app.use((req, res, next) => {
     next();
 });
 
-// ✅ Proxy Path Rewriter and Error Handler
+// Proxy Path Rewriter and Error Handler
 const proxyOptions = {
     proxyReqPathResolver: (req) => req.originalUrl.replace(/^\/v1/, '/api'),
 
