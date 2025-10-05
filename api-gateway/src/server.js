@@ -106,6 +106,26 @@ app.use(
   })
 );
 
+//setting up proxy for our media service
+app.use('/v1/media',validateToken ,proxy(process.env.MEDIA_SERVICE_URL,{
+    ...proxyOptions,
+    proxyReqOptDecorator: (proxyReqOpts, srcReq) => {
+         proxyReqOpts.headers["x-user-id"] = srcReq.user.userId;
+         if(!srcReq.headers['content-type'].startsWith('multipart/from-data')){
+             proxyReqOpts.headers["Content-Type"] = "application/json";
+         }
+         return proxyReqOpts
+    },
+    userResDecorator: (proxyRes, proxyResData, userReq, userRes) => {
+      logger.info(
+        `Response received from Media service: ${proxyRes.statusCode}`
+      );
+
+      return proxyResData;
+    },
+    parseReqBody :false
+}))
+
 // Global Error Handler
 app.use(errorHandler);
 
